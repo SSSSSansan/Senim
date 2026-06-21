@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { pool } from "./db";
 import authRouter from "./routes/auth";
+import chatRouter from "./routes/chat";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/db-check", async (req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/chat", chatRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

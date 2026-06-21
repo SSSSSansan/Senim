@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { pool } from "./db";
+import authRouter from "./routes/auth";
 
 dotenv.config();
 
@@ -21,6 +22,8 @@ app.get("/db-check", async (req, res) => {
     res.status(500).json({ db: "error", message: (err as Error).message });
   }
 });
+
+app.use("/api/auth", authRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

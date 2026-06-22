@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { pool } from "../db";
 import { requireStudent, AuthRequest } from "../middleware/requireStudent";
 import { SYSTEM_PROMPT } from "../prompts/system";
+import { classifyRisk } from "../services/riskClassifier";
 
 dotenv.config();
 
@@ -27,9 +28,11 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: "Сообщение обязательно" });
     }
 
+    // Классифицируем риск ДО отправки в LLM
+    const risk = classifyRisk(message);
+
     let convId = conversationId;
 
-    // Если диалога ещё нет — создаём новый
     if (!convId) {
       const title = message.slice(0, 30);
       const convResult = await pool.query(
@@ -39,13 +42,11 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       convId = convResult.rows[0].id;
     }
 
-    // Сохраняем сообщение студента
     await pool.query(
       "INSERT INTO messages (conversation_id, role, content) VALUES ($1, $2, $3)",
       [convId, "user", message]
     );
 
-    // Достаём историю диалога для контекста
     const historyResult = await pool.query(
       "SELECT role, content FROM messages WHERE conversation_id = $1 ORDER BY id ASC",
       [convId]
@@ -56,7 +57,6 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       content: row.content,
     }));
 
-    // Вызов Groq API
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -88,17 +88,25 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       return res.status(502).json({ error: "Ошибка обработки ответа AI" });
     }
 
-    // Сохраняем ответ ассистента
     await pool.query(
       "INSERT INTO messages (conversation_id, role, content, emotion) VALUES ($1, $2, $3, $4)",
       [convId, "assistant", parsed.reply, parsed.emotion]
     );
 
-    // Если экстренная ситуация — создаём case
-    if (parsed.isEmergency) {
+    // Создаём case если риск critical/high от классификатора ИЛИ LLM сказал isEmergency
+    const isEmergency = parsed.isEmergency || risk.level === "critical" || risk.level === "high";
+
+    if (isEmergency) {
       await pool.query(
-        "INSERT INTO cases (student_id, risk_level, category, source_message, status) VALUES ($1, $2, $3, $4, $5)",
-        [studentId, "critical", "llm_detected", message, "open"]
+        `INSERT INTO cases (student_id, risk_level, category, source_message, status)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          studentId,
+          risk.level !== "none" ? risk.level : "critical",
+          risk.category || "llm_detected",
+          message,
+          "open",
+        ]
       );
     }
 
@@ -106,8 +114,12 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       conversationId: convId,
       reply: parsed.reply,
       emotion: parsed.emotion,
-      isEmergency: parsed.isEmergency,
+      isEmergency,
       recommendations: parsed.recommendations,
+      risk: {
+        level: risk.level,
+        category: risk.category,
+      },
     });
   } catch (err) {
     console.error(err);

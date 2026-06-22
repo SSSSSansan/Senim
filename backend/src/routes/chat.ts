@@ -127,4 +127,50 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /api/chat/conversations — список всех диалогов студента
+router.get("/conversations", requireStudent, async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.id, c.title, c.created_at,
+        (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY id DESC LIMIT 1) as last_message
+       FROM conversations c
+       WHERE c.student_id = $1
+       ORDER BY c.created_at DESC`,
+      [req.studentId]
+    );
+
+    res.json({ conversations: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Не удалось получить список диалогов" });
+  }
+});
+
+// GET /api/chat/conversations/:id — сообщения конкретного диалога
+router.get("/conversations/:id", requireStudent, async (req: AuthRequest, res: Response) => {
+  try {
+    const convId = parseInt(req.params.id);
+
+    // Проверяем что этот диалог принадлежит этому студенту
+    const convCheck = await pool.query(
+      "SELECT id FROM conversations WHERE id = $1 AND student_id = $2",
+      [convId, req.studentId]
+    );
+
+    if (convCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Диалог не найден" });
+    }
+
+    const messages = await pool.query(
+      "SELECT id, role, content, emotion, created_at FROM messages WHERE conversation_id = $1 ORDER BY id ASC",
+      [convId]
+    );
+
+    res.json({ conversationId: convId, messages: messages.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Не удалось получить сообщения" });
+  }
+});
+
 export default router;

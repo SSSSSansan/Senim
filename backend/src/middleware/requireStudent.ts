@@ -9,6 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 export interface AuthRequest extends Request {
   studentId?: number;
   studentEmail?: string;
+  params: any;
 }
 
 export function requireStudent(req: AuthRequest, res: Response, next: NextFunction) {

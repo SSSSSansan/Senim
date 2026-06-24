@@ -61,6 +61,14 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       content: row.content,
     }));
 
+    // Считаем количество сообщений студента в этом диалоге
+    const studentMessageCount = historyResult.rows.filter(
+      (row) => row.role === "user"
+    ).length;
+
+    // После 4+ сообщений добавляем подсказку для LLM давать рекомендации
+    const shouldSuggestRecommendations = studentMessageCount >= 4;
+
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -69,7 +77,16 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
       },
       body: JSON.stringify({
         model: GROQ_MODEL,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...historyMessages],
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...historyMessages,
+          ...(shouldSuggestRecommendations
+            ? [{
+                role: "system" as const,
+                content: "Студент написал уже несколько сообщений. Если тема разговора достаточно раскрыта, заполни поле recommendations конкретными советами (2-4 пункта). Если разговор ещё не завершён — оставь null.",
+              }]
+            : []),
+        ],
         temperature: 0.7,
       }),
     });

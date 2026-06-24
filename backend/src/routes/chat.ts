@@ -4,7 +4,7 @@ import { pool } from "../db";
 import { requireStudent, AuthRequest } from "../middleware/requireStudent";
 import { SYSTEM_PROMPT } from "../prompts/system";
 import { classifyRisk } from "../services/riskClassifier";
-
+import { SCENARIOS } from "../prompts/scenarios";
 dotenv.config();
 
 const router = Router();
@@ -24,17 +24,21 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
     const { conversationId, message } = req.body;
     const studentId = req.studentId;
 
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Сообщение обязательно" });
+    // Если передан сценарий — подставляем preset-текст вместо сообщения
+    const scenarioText = req.body.scenario ? SCENARIOS[req.body.scenario] : null;
+    const finalMessage = scenarioText || message;
+
+    if (!finalMessage || typeof finalMessage !== "string") {
+      return res.status(400).json({ error: "Сообщение или сценарий обязательны" });
     }
 
     // Классифицируем риск ДО отправки в LLM
-    const risk = classifyRisk(message);
+    const risk = classifyRisk(finalMessage);
 
     let convId = conversationId;
 
     if (!convId) {
-      const title = message.slice(0, 30);
+      const title = finalMessage.slice(0, 30);
       const convResult = await pool.query(
         "INSERT INTO conversations (student_id, title) VALUES ($1, $2) RETURNING id",
         [studentId, title]
@@ -44,7 +48,7 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
 
     await pool.query(
       "INSERT INTO messages (conversation_id, role, content) VALUES ($1, $2, $3)",
-      [convId, "user", message]
+      [convId, "user", finalMessage]
     );
 
     const historyResult = await pool.query(
@@ -104,7 +108,7 @@ router.post("/", requireStudent, async (req: AuthRequest, res: Response) => {
           studentId,
           risk.level !== "none" ? risk.level : "critical",
           risk.category || "llm_detected",
-          message,
+          finalMessage,
           "open",
         ]
       );

@@ -10,7 +10,7 @@ import { useHistory } from './hooks/useHistory';
 import type { Conversation } from './types';
 
 export default function App() {
-  const { step, logout } = useAuth();
+  const { step, logout, email, loading, error: authError, requestCode, verifyCode, backToEmail } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeConversation, setActiveConversation] = useState<Conversation | undefined>();
 
@@ -30,7 +30,7 @@ export default function App() {
     [addConversation, fetchConversations],
   );
 
-  const { messages, isLoading, error, sendMessage, loadMessages, reset } = useChat({
+  const { messages, isLoading, error: chatError, sendMessage, loadMessages, reset } = useChat({
     conversationId: activeConversation?.id,
     onConversationCreated: handleConversationCreated,
   });
@@ -65,7 +65,17 @@ export default function App() {
   const showScenarios = messages.length === 0 && !isLoading;
 
   if (step !== 'done') {
-    return <LoginScreen />;
+    return (
+      <LoginScreen
+        step={step}
+        email={email}
+        loading={loading}
+        error={authError}
+        requestCode={requestCode}
+        verifyCode={verifyCode}
+        backToEmail={backToEmail}
+      />
+    );
   }
 
   return (
@@ -118,9 +128,9 @@ export default function App() {
           </button>
         </header>
 
-        {error && (
+        {chatError && (
           <div className="mx-4 mt-3 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-500">
-            {error}
+            {chatError}
           </div>
         )}
 

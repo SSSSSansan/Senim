@@ -1,25 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
 import type { KeyboardEvent } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import type { AuthStep } from '../hooks/useAuth';
 
-// Количество ячеек кода
 const CODE_LENGTH = 6;
 
-export default function LoginScreen() {
-  const { step, email, loading, error, requestCode, verifyCode, backToEmail } = useAuth();
+interface Props {
+  step: AuthStep;
+  email: string;
+  loading: boolean;
+  error: string | null;
+  requestCode: (email: string) => void;
+  verifyCode: (code: string) => void;
+  backToEmail: () => void;
+}
 
-  // --- Шаг 1: ввод email ---
+export default function LoginScreen({ step, email, loading, error, requestCode, verifyCode, backToEmail }: Props) {
   const [emailInput, setEmailInput] = useState('');
+  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleEmailSubmit = () => {
     const trimmed = emailInput.trim().toLowerCase();
     if (!trimmed) return;
     requestCode(trimmed);
   };
-
-  // --- Шаг 2: ввод кода (6 отдельных ячеек) ---
-  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (step === 'code') {
@@ -28,7 +32,6 @@ export default function LoginScreen() {
   }, [step]);
 
   const handleDigitChange = (index: number, value: string) => {
-    // Разрешаем вставить сразу весь код (paste)
     if (value.length > 1) {
       const pasted = value.replace(/\D/g, '').slice(0, CODE_LENGTH).split('');
       const next = [...digits];
@@ -57,7 +60,6 @@ export default function LoginScreen() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F7FF] px-4">
-      {/* Логотип / название */}
       <div className="mb-10 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#7C6AF7] mb-4 shadow-lg">
           <span className="text-white text-3xl">💙</span>
@@ -66,14 +68,12 @@ export default function LoginScreen() {
         <p className="mt-1 text-sm text-gray-500">Психологическая поддержка студентов KBTU</p>
       </div>
 
-      {/* Карточка */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8">
-
         {step === 'email' && (
           <>
             <h2 className="text-lg font-semibold text-gray-800 mb-1">Войти</h2>
             <p className="text-sm text-gray-500 mb-6">
-              Введи свой KBTU email — мы отправим одноразовый код.
+              Введи свой email — мы отправим одноразовый код.
             </p>
 
             <label className="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">
@@ -82,7 +82,7 @@ export default function LoginScreen() {
             <input
               type="email"
               autoComplete="email"
-              placeholder="you@kbtu.kz"
+              placeholder="you@gmail.com"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
@@ -90,9 +90,7 @@ export default function LoginScreen() {
               disabled={loading}
             />
 
-            {error && (
-              <p className="mt-3 text-xs text-red-500">{error}</p>
-            )}
+            {error && <p className="mt-3 text-xs text-red-500">{error}</p>}
 
             <button
               onClick={handleEmailSubmit}
@@ -121,7 +119,6 @@ export default function LoginScreen() {
               Проверь папку «Спам», если не видишь письма.
             </p>
 
-            {/* 6 ячеек */}
             <div className="flex gap-2 justify-between mb-2">
               {digits.map((digit, i) => (
                 <input
@@ -129,7 +126,7 @@ export default function LoginScreen() {
                   ref={(el) => { inputRefs.current[i] = el; }}
                   type="text"
                   inputMode="numeric"
-                  maxLength={6} // разрешаем paste всего кода
+                  maxLength={6}
                   value={digit}
                   onChange={(e) => handleDigitChange(i, e.target.value)}
                   onKeyDown={(e) => handleDigitKeyDown(i, e)}
@@ -141,13 +138,8 @@ export default function LoginScreen() {
               ))}
             </div>
 
-            {error && (
-              <p className="mt-2 text-xs text-red-500">{error}</p>
-            )}
-
-            {loading && (
-              <p className="mt-3 text-xs text-center text-gray-400">Проверяем код...</p>
-            )}
+            {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
+            {loading && <p className="mt-3 text-xs text-center text-gray-400">Проверяем код...</p>}
 
             <p className="mt-5 text-xs text-center text-gray-400">
               Не пришло письмо?{' '}
@@ -163,7 +155,6 @@ export default function LoginScreen() {
         )}
       </div>
 
-      {/* Дисклеймер */}
       <p className="mt-8 text-xs text-gray-400 text-center max-w-xs">
         Senim — не замена профессиональному психологу. При кризисе обратись к специалисту
         или позвони на телефон доверия{' '}

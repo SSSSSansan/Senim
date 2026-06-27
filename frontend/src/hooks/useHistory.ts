@@ -12,17 +12,16 @@ export function useHistory() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /** Загрузить список всех диалогов */
   const fetchConversations = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/conversations`, {
+      const res = await fetch(`${API_BASE}/api/chat/conversations`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       if (!res.ok) throw new Error(`Ошибка ${res.status}`);
-      const data: Conversation[] = await res.json();
-      setConversations(data);
+      const data = await res.json();
+      setConversations(Array.isArray(data) ? data : (data.conversations ?? []));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Не удалось загрузить историю');
     } finally {
@@ -30,9 +29,8 @@ export function useHistory() {
     }
   }, []);
 
-  /** Загрузить сообщения конкретного диалога */
   const fetchMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
-    const res = await fetch(`${API_BASE}/api/conversations/${conversationId}`, {
+    const res = await fetch(`${API_BASE}/api/chat/conversations/${conversationId}`, {
       headers: { Authorization: `Bearer ${getToken()}` },
     });
     if (!res.ok) throw new Error(`Ошибка ${res.status}`);
@@ -40,12 +38,10 @@ export function useHistory() {
     return data.messages ?? [];
   }, []);
 
-  /** Добавить новый диалог в список (вызывается когда чат создал новый) */
   const addConversation = useCallback((conv: Conversation) => {
     setConversations((prev) => [conv, ...prev]);
   }, []);
 
-  /** Обновить заголовок диалога (первые 30 символов первого сообщения) */
   const updateTitle = useCallback((id: string, title: string) => {
     setConversations((prev) =>
       prev.map((c) => (c.id === id ? { ...c, title } : c))

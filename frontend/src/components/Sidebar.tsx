@@ -9,7 +9,6 @@ interface Props {
   onClose: () => void;
 }
 
-/** Группируем диалоги по дате */
 function groupByDate(conversations: Conversation[]): Record<string, Conversation[]> {
   const groups: Record<string, Conversation[]> = {};
   const now = new Date();
@@ -39,24 +38,24 @@ export default function Sidebar({ conversations, activeId, loading, onSelect, on
 
   return (
     <div className="flex flex-col h-full w-64 bg-white border-r border-gray-100">
-      {/* Шапка сайдбара */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-        <span className="font-semibold text-gray-800 text-sm">Диалоги</span>
+        <span className="font-semibold text-gray-700 text-sm">Диалоги</span>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition md:hidden"
+          className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
           aria-label="Закрыть"
         >
-          ✕
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+          </svg>
         </button>
       </div>
 
-      {/* Кнопка нового диалога */}
       <div className="px-3 pt-3 pb-2">
         <button
           onClick={onNew}
           className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl
-                     bg-[#F8F7FF] hover:bg-[#ede9fe] text-[#7C6AF7] text-sm font-medium
+                     bg-[#F3F0FF] hover:bg-[#ede9fe] text-[#7C6AF7] text-sm font-medium
                      transition active:scale-95"
         >
           <span className="text-lg leading-none">＋</span>
@@ -64,7 +63,6 @@ export default function Sidebar({ conversations, activeId, loading, onSelect, on
         </button>
       </div>
 
-      {/* Список диалогов */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {loading && (
           <div className="flex flex-col gap-2 mt-2">
@@ -92,7 +90,7 @@ export default function Sidebar({ conversations, activeId, loading, onSelect, on
                     className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition truncate
                       ${activeId === conv.id
                         ? 'bg-[#ede9fe] text-[#7C6AF7] font-medium'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        : 'text-gray-600 hover:bg-gray-50'
                       }`}
                   >
                     {conv.title || 'Без названия'}

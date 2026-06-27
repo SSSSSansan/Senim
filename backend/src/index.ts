@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { pool } from "./db";
 import authRouter from "./routes/auth";
 import chatRouter from "./routes/chat";
+import staffRouter from "./routes/staff";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get("/db-check", async (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/staff", staffRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

@@ -61,10 +61,8 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F7FF] px-4">
       <div className="mb-10 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#7C6AF7] mb-4 shadow-lg">
-          <span className="text-white text-3xl">💙</span>
-        </div>
-        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Senim</h1>
+        <img src="/senim_logo2.png" alt="Senim" className="w-24 h-24 object-contain mb-0 mx-auto" />
+        <img src="/logo_senim.png" alt="Senim" className="h-16 object-contain mx-auto" />
         <p className="mt-1 text-sm text-gray-500">Психологическая поддержка студентов KBTU</p>
       </div>
 
@@ -73,7 +71,7 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
           <>
             <h2 className="text-lg font-semibold text-gray-800 mb-1">Войти</h2>
             <p className="text-sm text-gray-500 mb-6">
-              Введи свой email — мы отправим одноразовый код.
+              Введи свой email — мы отправим одноразовый код для входа.
             </p>
 
             <label className="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">
@@ -86,7 +84,7 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#7C6AF7] focus:border-transparent transition"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#7C6AF7] focus:border-transparent transition"
               disabled={loading}
             />
 
@@ -131,9 +129,7 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
                   onChange={(e) => handleDigitChange(i, e.target.value)}
                   onKeyDown={(e) => handleDigitKeyDown(i, e)}
                   disabled={loading}
-                  className="w-11 h-12 text-center text-lg font-semibold rounded-xl border border-gray-200
-                             focus:outline-none focus:ring-2 focus:ring-[#7C6AF7] focus:border-transparent
-                             transition disabled:opacity-50"
+                  className="w-11 h-12 text-center text-lg font-semibold rounded-xl border border-gray-200 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#7C6AF7] focus:border-transparent transition disabled:opacity-50"
                 />
               ))}
             </div>

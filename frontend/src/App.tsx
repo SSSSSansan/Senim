@@ -51,21 +51,6 @@ export default function App() {
     onEmergency: handleEmergency,
   });
 
-  const handleSelectConversation = useCallback(
-    async (conv: Conversation) => {
-      setActiveConversation(conv);
-      setSidebarOpen(false);
-      setIsEmergency(false);
-      setShowRecommendations(false);
-      try {
-        const msgs = await fetchMessages(conv.id);
-        loadMessages(msgs);
-      } catch {
-        loadMessages([]);
-      }
-    },
-    [fetchMessages, loadMessages],
-  );
 
   const handleNewConversation = useCallback(() => {
     setActiveConversation(undefined);

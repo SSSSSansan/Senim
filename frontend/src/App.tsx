@@ -4,6 +4,8 @@ import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import Sidebar from './components/Sidebar';
 import QuickScenarios from './components/QuickScenarios';
+import RecommendationPanel from './components/RecommendationPanel';
+import EmergencyBanner from './components/EmergencyBanner';
 import { useAuth } from './hooks/useAuth';
 import { useChat } from './hooks/useChat';
 import { useHistory } from './hooks/useHistory';
@@ -11,8 +13,11 @@ import type { Conversation } from './types';
 
 export default function App() {
   const { step, logout, email, loading, error: authError, requestCode, verifyCode, backToEmail } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeConversation, setActiveConversation] = useState<Conversation | undefined>();
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [isEmergency, setIsEmergency] = useState(false);
 
   const { conversations, loading: historyLoading, fetchConversations, fetchMessages, addConversation } = useHistory();
 
@@ -30,15 +35,28 @@ export default function App() {
     [addConversation, fetchConversations],
   );
 
+  const handleRecommendations = useCallback((recs: string[]) => {
+    setRecommendations(recs);
+    setShowRecommendations(true);
+  }, []);
+
+  const handleEmergency = useCallback(() => {
+    setIsEmergency(true);
+  }, []);
+
   const { messages, isLoading, error: chatError, sendMessage, loadMessages, reset } = useChat({
     conversationId: activeConversation?.id,
     onConversationCreated: handleConversationCreated,
+    onRecommendations: handleRecommendations,
+    onEmergency: handleEmergency,
   });
 
   const handleSelectConversation = useCallback(
     async (conv: Conversation) => {
       setActiveConversation(conv);
       setSidebarOpen(false);
+      setIsEmergency(false);
+      setShowRecommendations(false);
       try {
         const msgs = await fetchMessages(conv.id);
         loadMessages(msgs);
@@ -51,8 +69,10 @@ export default function App() {
 
   const handleNewConversation = useCallback(() => {
     setActiveConversation(undefined);
+    setIsEmergency(false);
+    setShowRecommendations(false);
+    setRecommendations([]);
     reset();
-    setSidebarOpen(false);
   }, [reset]);
 
   const handleScenario = useCallback(
@@ -87,38 +107,38 @@ export default function App() {
         />
       )}
 
-      <div
-        className={`
-          fixed md:relative z-20 h-full transition-transform duration-200
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
-      >
-        <Sidebar
-          conversations={conversations}
-          activeId={activeConversation?.id}
-          loading={historyLoading}
-          onSelect={handleSelectConversation}
-          onNew={handleNewConversation}
-          onClose={() => setSidebarOpen(false)}
-        />
-      </div>
+      {sidebarOpen && (
+        <div className="fixed md:relative z-20 h-full">
+          <Sidebar
+            conversations={conversations}
+            activeId={activeConversation?.id}
+            loading={historyLoading}
+            onSelect={(conv) => {
+              setActiveConversation(conv);
+              setIsEmergency(false);
+              setShowRecommendations(false);
+              setSidebarOpen(window.innerWidth >= 768);
+              fetchMessages(conv.id).then(loadMessages).catch(() => loadMessages([]));
+            }}
+            onNew={handleNewConversation}
+            onClose={() => setSidebarOpen(false)}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
+        <header className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden text-gray-500 hover:text-gray-700 transition"
-              aria-label="Открыть меню"
+              onClick={() => setSidebarOpen((v) => !v)}
+              className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+              aria-label="Показать/скрыть диалоги"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <span className="text-xl">💙</span>
-            <span className="font-semibold text-gray-800">
-              {activeConversation?.title ?? 'Senim'}
-            </span>
+            <img src="/logo_senim.png" alt="Senim" className="h-7 object-contain" />
           </div>
           <button
             onClick={logout}
@@ -136,11 +156,22 @@ export default function App() {
 
         <ChatWindow messages={messages} isLoading={isLoading} />
 
-        {showScenarios && (
+        {isEmergency && (
+          <EmergencyBanner onContinue={() => setIsEmergency(false)} />
+        )}
+
+        {showRecommendations && recommendations.length > 0 && !isEmergency && (
+          <RecommendationPanel
+            recommendations={recommendations}
+            onClose={() => setShowRecommendations(false)}
+          />
+        )}
+
+        {showScenarios && !isEmergency && (
           <QuickScenarios onSelect={handleScenario} />
         )}
 
-        <MessageInput onSend={sendMessage} disabled={isLoading} />
+        <MessageInput onSend={sendMessage} disabled={isLoading || isEmergency} />
       </div>
     </div>
   );

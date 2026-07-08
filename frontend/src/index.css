@@ -111,3 +111,21 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+/* Светлый скроллбар */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e0f0 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #e2e0f0;
+  border-radius: 99px;
+}

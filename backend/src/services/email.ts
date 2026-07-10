@@ -1,21 +1,23 @@
-import { Resend } from "resend";
-import dotenv from "dotenv";
+import nodemailer from 'nodemailer';
 
-dotenv.config();
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-export async function sendOtpEmail(email: string, code: string) {
-  await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: email,
-    subject: "Ваш код для входа в Senim",
+export async function sendOtpEmail(to: string, code: string): Promise<void> {
+  await transporter.sendMail({
+    from: `"Senim" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: 'Код подтверждения — Senim',
     html: `
       <div style="font-family: sans-serif; padding: 20px;">
-        <h2>Senim</h2>
-        <p>Ваш код для входа:</p>
-        <h1 style="letter-spacing: 4px;">${code}</h1>
-        <p>Код действителен 10 минут. Если вы не запрашивали вход — проигнорируйте это письмо.</p>
+        <h2>Ваш код для входа в Senim</h2>
+        <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
+        <p style="color: #888;">Код действителен 10 минут. Если вы не запрашивали вход — просто проигнорируйте это письмо.</p>
       </div>
     `,
   });

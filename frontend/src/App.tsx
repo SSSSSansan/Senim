@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import LoginScreen from './components/LoginScreen';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
@@ -6,12 +7,16 @@ import Sidebar from './components/Sidebar';
 import QuickScenarios from './components/QuickScenarios';
 import RecommendationPanel from './components/RecommendationPanel';
 import EmergencyBanner from './components/EmergencyBanner';
+import StaffLogin from './components/StaffLogin';
+import StaffDashboard from './components/StaffDashboard';
 import { useAuth } from './hooks/useAuth';
 import { useChat } from './hooks/useChat';
 import { useHistory } from './hooks/useHistory';
+import { useStaffAuth } from './hooks/useStaffAuth';
 import type { Conversation } from './types';
 
-export default function App() {
+// ==================== Студенческое приложение ====================
+function StudentApp() {
   const { step, logout, email, loading, error: authError, requestCode, verifyCode, backToEmail } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeConversation, setActiveConversation] = useState<Conversation | undefined>();
@@ -51,7 +56,6 @@ export default function App() {
     onEmergency: handleEmergency,
   });
 
-
   const handleNewConversation = useCallback(() => {
     setActiveConversation(undefined);
     setIsEmergency(false);
@@ -71,15 +75,25 @@ export default function App() {
 
   if (step !== 'done') {
     return (
-      <LoginScreen
-        step={step}
-        email={email}
-        loading={loading}
-        error={authError}
-        requestCode={requestCode}
-        verifyCode={verifyCode}
-        backToEmail={backToEmail}
-      />
+      <div className="relative min-h-screen">
+        <LoginScreen
+          step={step}
+          email={email}
+          loading={loading}
+          error={authError}
+          requestCode={requestCode}
+          verifyCode={verifyCode}
+          backToEmail={backToEmail}
+        />
+        <div className="fixed bottom-4 left-0 w-full text-center">
+          <Link
+            to="/staff/login"
+            className="text-xs text-gray-400 hover:text-gray-600 transition underline"
+          >
+            Вы психолог или куратор? Войти как сотрудник
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -159,5 +173,58 @@ export default function App() {
         <MessageInput onSend={sendMessage} disabled={isLoading || isEmergency} />
       </div>
     </div>
+  );
+}
+
+// ==================== Логин персонала (обёртка над хуком) ====================
+function StaffLoginPage() {
+  const { loading, error, login, isLoggedIn } = useStaffAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoggedIn) navigate('/staff/dashboard', { replace: true });
+  }, [isLoggedIn, navigate]);
+
+  return <StaffLogin loading={loading} error={error} onLogin={login} />;
+}
+
+// ==================== Дашборд персонала (обёртка над хуком) ====================
+function StaffDashboardPage() {
+  const { staff, logout } = useStaffAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/staff/login', { replace: true });
+  };
+
+  return <StaffDashboard staff={staff} onLogout={handleLogout} />;
+}
+
+// ==================== Защищённый роут персонала ====================
+function ProtectedStaffRoute({ children }: { children: React.ReactNode }) {
+  const { token } = useStaffAuth();
+  if (!token) return <Navigate to="/staff/login" replace />;
+  return <>{children}</>;
+}
+
+// ==================== Корневой компонент с роутами ====================
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<StudentApp />} />
+        <Route path="/staff/login" element={<StaffLoginPage />} />
+        <Route
+          path="/staff/dashboard"
+          element={
+            <ProtectedStaffRoute>
+              <StaffDashboardPage />
+            </ProtectedStaffRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

@@ -80,7 +80,7 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
             <input
               type="email"
               autoComplete="email"
-              placeholder="you@gmail.com"
+              placeholder="you@kbtu.kz"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
@@ -151,7 +151,7 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
         )}
       </div>
 
-      <p className="mt-8 text-xs text-gray-400 text-center max-w-xs">
+      <p className="mt-8 text-xs text-gray-400 text-center max-w-sm">
         Senim — не замена профессиональному психологу. При кризисе обратись к специалисту
         или позвони на телефон доверия{' '}
         <a href="tel:150" className="text-[#7C6AF7]">150</a>.

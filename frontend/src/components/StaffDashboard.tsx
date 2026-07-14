@@ -115,7 +115,7 @@ export default function StaffDashboard({ staff, onLogout }: Props) {
       <div className="flex flex-col flex-1 min-w-0">
         <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
-            <img src="/logo_senim.png" alt="Senim" className="h-7 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}logo_senim.png`} alt="Senim" className="h-7 object-contain" />
             <span className="text-xs text-gray-400 border-l border-gray-200 pl-3">Панель персонала</span>
           </div>
           <div className="flex items-center gap-3">

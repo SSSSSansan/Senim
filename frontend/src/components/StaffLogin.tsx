@@ -19,8 +19,8 @@ export default function StaffLogin({ loading, error, onLogin }: Props) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F7FF] px-4">
       <div className="mb-8 text-center">
-        <img src="/senim_logo2.png" alt="Senim" className="w-16 h-16 object-contain mx-auto mb-2" />
-        <img src="/logo_senim.png" alt="Senim" className="h-8 object-contain mx-auto" />
+        <img src={`${import.meta.env.BASE_URL}senim_logo2.png`} alt="Senim" className="w-16 h-16 object-contain mx-auto mb-2" />
+        <img src={`${import.meta.env.BASE_URL}logo_senim.png`} alt="Senim" className="h-8 object-contain mx-auto" />
         <p className="mt-2 text-xs text-gray-400">Панель персонала</p>
       </div>
 

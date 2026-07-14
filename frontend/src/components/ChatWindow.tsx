@@ -20,7 +20,7 @@ export default function ChatWindow({ messages, isLoading }: Props) {
     <div className={`flex-1 px-4 py-6 space-y-4 ${messages.length > 0 ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       {isEmpty && (
         <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 select-none">
-          <img src="/senim_logo2.png" alt="Senim" className="w-16 h-16 object-contain mb-3" />
+          <img src={`${import.meta.env.BASE_URL}senim_logo2.png`} alt="Senim" className="w-16 h-16 object-contain mb-3" />
           <p className="text-sm">Привет! Я Senim.<br />Расскажи, как ты сегодня?</p>
         </div>
       )}

@@ -61,8 +61,8 @@ export default function LoginScreen({ step, email, loading, error, requestCode, 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F7FF] px-4">
       <div className="mb-10 text-center">
-        <img src="/senim_logo2.png" alt="Senim" className="w-24 h-24 object-contain mb-0 mx-auto" />
-        <img src="/logo_senim.png" alt="Senim" className="h-16 object-contain mx-auto" />
+        <img src={`${import.meta.env.BASE_URL}senim_logo2.png`} alt="Senim" className="w-24 h-24 object-contain mb-0 mx-auto" />
+        <img src={`${import.meta.env.BASE_URL}logo_senim.png`} alt="Senim" className="h-16 object-contain mx-auto" />
         <p className="mt-1 text-sm text-gray-500">Психологическая поддержка студентов KBTU</p>
       </div>
 

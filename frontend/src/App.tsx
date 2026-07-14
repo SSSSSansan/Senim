@@ -75,7 +75,7 @@ function StudentApp() {
 
   if (step !== 'done') {
     return (
-      <div className="relative min-h-screen">
+      <div className="flex flex-col min-h-screen">
         <LoginScreen
           step={step}
           email={email}
@@ -85,7 +85,7 @@ function StudentApp() {
           verifyCode={verifyCode}
           backToEmail={backToEmail}
         />
-        <div className="fixed bottom-4 left-0 w-full text-center">
+        <div className="pb-6 pt-3 text-center">
           <Link
             to="/staff/login"
             className="text-xs text-gray-400 hover:text-gray-600 transition underline"
@@ -137,7 +137,7 @@ function StudentApp() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <img src="/logo_senim.png" alt="Senim" className="h-7 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}logo_senim.png`} alt="Senim" className="h-7 object-contain" />
           </div>
           <button
             onClick={logout}
@@ -211,7 +211,7 @@ function ProtectedStaffRoute({ children }: { children: React.ReactNode }) {
 // ==================== Корневой компонент с роутами ====================
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<StudentApp />} />
         <Route path="/staff/login" element={<StaffLoginPage />} />

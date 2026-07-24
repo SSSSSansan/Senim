@@ -6,6 +6,10 @@ import authRouter from "./routes/auth";
 import chatRouter from "./routes/chat";
 import staffRouter from "./routes/staff";
 
+import net from 'net';
+net.setDefaultAutoSelectFamily(false);
+
+
 dotenv.config();
 
 const app = express();
